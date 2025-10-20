@@ -38,7 +38,7 @@ export class StickyNoteComponent {
     textarea.className = 'note-textarea';
     textarea.value = this.note.text;
     textarea.maxLength = 200;
-    textarea.placeholder = 'Enter your note (max 200 characters)';
+    textarea.placeholder = 'メッセージを入力してください（最大200文字）';
 
     const charCount = document.createElement('div');
     charCount.className = 'char-count';
@@ -92,14 +92,14 @@ export class StickyNoteComponent {
 
   private updateCharCount(charCountElement: HTMLDivElement, count: number): void {
     const remaining = 200 - count;
-    charCountElement.textContent = `${remaining} characters remaining`;
+    charCountElement.textContent = `残り${remaining}文字`;
     charCountElement.className = `char-count ${remaining < 20 ? 'warning' : ''}`;
   }
 
   private handleSave(text: string): void {
     const trimmedText = text.trim();
     if (trimmedText.length === 0) {
-      this.showError('Note cannot be empty');
+      this.showError('メッセージが空です');
       return;
     }
 

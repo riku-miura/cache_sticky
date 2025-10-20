@@ -92,20 +92,32 @@ class CacheStickyApp {
 }
 
 // Initialize the application when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-  const app = new CacheStickyApp();
-  await app.initialize();
-});
-
-// Also handle the case where script loads after DOM is ready
-if (document.readyState === 'loading') {
-  // DOM not ready yet, wait for it
-  document.addEventListener('DOMContentLoaded', async () => {
+async function initializeApp() {
+  try {
+    console.log('Starting Cache Sticky application...');
     const app = new CacheStickyApp();
     await app.initialize();
-  });
+    console.log('Application initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize application:', error);
+    // Show fallback UI
+    document.body.innerHTML = `
+      <div id="fallback-app">
+        <h1>Cache Sticky</h1>
+        <div class="fallback-message">
+          <h2>⚠️ Application failed to load</h2>
+          <p>Error: ${error instanceof Error ? error.message : 'Unknown error'}</p>
+          <button onclick="location.reload()">Refresh Page</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+if (document.readyState === 'loading') {
+  // DOM not ready yet, wait for it
+  document.addEventListener('DOMContentLoaded', initializeApp);
 } else {
   // DOM already ready
-  const app = new CacheStickyApp();
-  app.initialize();
+  initializeApp();
 }

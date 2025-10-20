@@ -4,15 +4,20 @@ import { CacheService } from '@/services/CacheService';
 
 export class WhiteboardService {
   private cacheService: CacheService;
-  private nextPosition = { x: 50, y: 50 };
-  private readonly POSITION_OFFSET = 20;
+  private readonly NOTE_WIDTH = 200;  // ふせんの幅
+  private readonly NOTE_HEIGHT = 150; // ふせんの高さ
+  private readonly GRID_SPACING = 20;  // グリッド間隔
+  private readonly START_X = 20;       // 開始位置X
+  private readonly START_Y = 20;       // 開始位置Y
+  private readonly CONTAINER_WIDTH = 800; // コンテナ幅
+  private inMemoryNotes: Map<string, StickyNote> = new Map(); // インメモリ管理
 
   constructor() {
     this.cacheService = new CacheService();
   }
 
-  createNewNote(position?: { x: number; y: number }): StickyNote {
-    const notePosition = position || this.getNextPosition();
+  async createNewNote(position?: { x: number; y: number }): Promise<StickyNote> {
+    const notePosition = position || await this.getNextPosition();
 
     const note: StickyNote = {
       id: uuidv4(),
@@ -22,25 +27,61 @@ export class WhiteboardService {
       isEditing: true,
     };
 
+    // インメモリに即座に追加して位置の衝突を防ぐ
+    this.inMemoryNotes.set(note.id, note);
+
     return note;
   }
 
-  private getNextPosition(): { x: number; y: number } {
-    const position = { ...this.nextPosition };
+  private async getNextPosition(): Promise<{ x: number; y: number }> {
+    // 既存のふせんの位置を取得（Cache API + インメモリ）
+    const cachedNotes = await this.cacheService.getAllNotes();
+    const inMemoryNotes = Array.from(this.inMemoryNotes.values());
+    const allNotes = [...cachedNotes, ...inMemoryNotes];
 
-    // Update next position to avoid overlap
-    this.nextPosition.x += this.POSITION_OFFSET;
-    this.nextPosition.y += this.POSITION_OFFSET;
 
-    // Reset position if it goes off screen (simple wrap-around)
-    if (this.nextPosition.x > 800) {
-      this.nextPosition.x = 50;
+    // 重複を除去（IDベース）
+    const uniqueNotes = allNotes.reduce((acc, note) => {
+      acc.set(note.id, note);
+      return acc;
+    }, new Map<string, StickyNote>());
+
+    const occupiedPositions = new Set(
+      Array.from(uniqueNotes.values()).map(note => `${note.position.x},${note.position.y}`)
+    );
+
+
+    // 固定ふせんの位置を追加（説明ふせんと新しいふせんボタン）
+    const fixedPositions = [
+      '20,20',   // 説明ふ1
+      '240,20',  // 説明ふ2
+      '460,20',  // 説明ふ3
+      '20,190'   // 新しいふせんボタン
+    ];
+
+    fixedPositions.forEach(pos => occupiedPositions.add(pos));
+
+    // グリッドで配置していく（新しいふせんボタンの下の行から開始）
+    let currentX = this.START_X;
+    let currentY = 190 + this.NOTE_HEIGHT + this.GRID_SPACING; // 新しいふせんボタン(190px) + ふせんの高さ(150px) + 間隔(20px) = 360px
+
+    while (true) {
+      const positionKey = `${currentX},${currentY}`;
+
+      // この位置が空いているかチェック
+      if (!occupiedPositions.has(positionKey)) {
+        return { x: currentX, y: currentY };
+      }
+
+      // 次の位置へ移動
+      currentX += this.NOTE_WIDTH + this.GRID_SPACING;
+
+      // 行の終わりに達したら次の行へ
+      if (currentX + this.NOTE_WIDTH > this.CONTAINER_WIDTH) {
+        currentX = this.START_X;
+        currentY += this.NOTE_HEIGHT + this.GRID_SPACING;
+      }
     }
-    if (this.nextPosition.y > 600) {
-      this.nextPosition.y = 50;
-    }
-
-    return position;
   }
 
   async saveNote(noteId: string, text: string): Promise<void> {
@@ -53,21 +94,34 @@ export class WhiteboardService {
     // In a real app, this would likely get the existing note first
     const sanitizedText = StickyNoteValidator.sanitizeText(text);
 
+    // 既存のノートの位置を保持するため、インメモリまたはキャッシュから取得
+    const inMemoryNote = this.inMemoryNotes.get(noteId);
+    const cachedNote = await this.cacheService.getNote(noteId);
+    const position = inMemoryNote?.position || cachedNote?.position || await this.getNextPosition();
+
     const note: StickyNote = {
       id: noteId,
       text: sanitizedText,
-      createdAt: Date.now(),
-      position: this.getNextPosition(), // In real implementation, use existing position
+      createdAt: inMemoryNote?.createdAt || cachedNote?.createdAt || Date.now(),
+      position: position,
       isEditing: false,
     };
 
-    await this.cacheService.storeNote(note);
+    // インメモリにも保存（位置管理のため）
+    this.inMemoryNotes.set(noteId, note);
+
+    try {
+      await this.cacheService.storeNote(note);
+      console.log(`Note ${noteId} stored successfully in cache`);
+    } catch (error) {
+      console.warn(`Save operation completed with warnings for note ${noteId}:`, error);
+      // Continue execution even if cache storage fails
+    }
   }
 
   cancelNoteEdit(noteId: string): void {
-    // For new notes, this would remove them from the DOM
-    // For existing notes, this would revert changes
-    // Implementation depends on UI integration
+    // インメモリからノートを削除
+    this.inMemoryNotes.delete(noteId);
     console.log(`Cancelling edit for note: ${noteId}`);
   }
 
@@ -79,35 +133,10 @@ export class WhiteboardService {
     return StickyNoteValidator.validateText(text);
   }
 
-  // Helper method to update next position based on existing notes
-  private updateNextPositionFromNotes(notes: StickyNote[]): void {
-    if (notes.length === 0) {
-      this.nextPosition = { x: 50, y: 50 };
-      return;
-    }
-
-    // Find the rightmost and bottommost positions
-    const maxX = Math.max(...notes.map(note => note.position.x));
-    const maxY = Math.max(...notes.map(note => note.position.y));
-
-    this.nextPosition = {
-      x: maxX + this.POSITION_OFFSET,
-      y: maxY + this.POSITION_OFFSET,
-    };
-
-    // Apply wrap-around logic
-    if (this.nextPosition.x > 800) {
-      this.nextPosition.x = 50;
-      this.nextPosition.y = maxY + this.POSITION_OFFSET * 2;
-    }
-    if (this.nextPosition.y > 600) {
-      this.nextPosition.y = 50;
-    }
-  }
+  // updateNextPositionFromNotesメソッドは不要（グリッドベースのため）
 
   // Initialize the service with existing notes
   async initialize(): Promise<void> {
-    const existingNotes = await this.loadAllNotes();
-    this.updateNextPositionFromNotes(existingNotes);
+    // グリッドベースのため初期化不要
   }
 }

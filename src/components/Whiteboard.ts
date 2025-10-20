@@ -7,14 +7,14 @@ import { NewNoteButton } from '@/components/NewNoteButton';
 export class Whiteboard {
   private element: HTMLDivElement;
   private whiteboardService: WhiteboardService;
-  private cacheService: CacheService;
+  // private cacheService: CacheService; // 使用していないためコメントアウト
   private newNoteButton: NewNoteButton;
   private noteComponents: Map<string, StickyNoteComponent> = new Map();
   private isCreatingNote = false;
 
   constructor() {
     this.whiteboardService = new WhiteboardService();
-    this.cacheService = new CacheService();
+    // this.cacheService = new CacheService(); // 使用していないためコメントアウト
     this.newNoteButton = new NewNoteButton(() => this.handleNewNoteClick());
     this.element = this.createElement();
   }
@@ -24,62 +24,27 @@ export class Whiteboard {
     container.id = 'app';
     container.className = 'whiteboard-container';
 
-    // Header with button and status
-    const header = document.createElement('div');
-    header.className = 'whiteboard-header';
-
-    const title = document.createElement('h1');
-    title.textContent = 'Cache Sticky - Browser Cache API Demo';
-    title.className = 'app-title';
-
-    const cacheStatus = document.createElement('div');
-    cacheStatus.id = 'cache-status';
-    cacheStatus.className = 'cache-status';
-    this.updateCacheStatus(cacheStatus);
-
-    header.appendChild(title);
-    header.appendChild(this.newNoteButton.getElement());
-    header.appendChild(cacheStatus);
+    // ヘッダーエリアを完全に削除
 
     // Main whiteboard area
     const whiteboard = document.createElement('div');
     whiteboard.id = 'whiteboard';
     whiteboard.className = 'whiteboard';
 
-    // Instructions
-    const instructions = document.createElement('div');
-    instructions.className = 'instructions';
-    instructions.innerHTML = `
-      <p><strong>Instructions:</strong></p>
-      <ol>
-        <li>Click "New Note" to create a sticky note</li>
-        <li>Type your message (max 200 characters)</li>
-        <li>Press Enter or click outside to save</li>
-        <li>Refresh the page - notes persist via Cache API</li>
-        <li>Clear browser cache (Dev Tools → Application → Storage) to see notes disappear</li>
-      </ol>
-    `;
+    // 使い方エリアを削除（ふせん形式に変更するため）
 
-    container.appendChild(header);
-    container.appendChild(instructions);
+    // 新しいふせんボタンもふせん形式に変更するため、ここでは作成しない
+
     container.appendChild(whiteboard);
 
     return container;
   }
 
-  private updateCacheStatus(statusElement: HTMLDivElement): void {
-    if (this.cacheService.isCacheAvailable()) {
-      statusElement.textContent = '✅ Cache API available - notes will persist';
-      statusElement.className = 'cache-status available';
-    } else {
-      statusElement.textContent = '❌ Cache API unavailable - notes will not persist';
-      statusElement.className = 'cache-status unavailable';
-    }
-  }
+  // updateCacheStatusメソッドを削除（不要になったため）
 
   private async handleNewNoteClick(): Promise<void> {
     if (this.isCreatingNote) {
-      this.showMessage('Please finish editing the current note first', 'warning');
+      this.showMessage('現在編集中の付箋を先に完了してください', 'warning');
       return;
     }
 
@@ -91,13 +56,13 @@ export class Whiteboard {
       this.setAllNotesNonEditable();
 
       // Create new note
-      const newNote = this.whiteboardService.createNewNote();
+      const newNote = await this.whiteboardService.createNewNote();
       this.addNoteToDOM(newNote);
 
-      this.showMessage('New note created - start typing!', 'info');
+      this.showMessage('新しい付箋が作成されました - 入力してください！', 'info');
     } catch (error) {
       console.error('Failed to create new note:', error);
-      this.showMessage('Failed to create new note', 'error');
+      this.showMessage('新しい付箋の作成に失敗しました', 'error');
       this.isCreatingNote = false;
       this.newNoteButton.setEnabled(true);
     }
@@ -136,25 +101,32 @@ export class Whiteboard {
       await this.whiteboardService.saveNote(noteId, text);
 
       // Update the note component to non-editing state
+      // Get the actual position from the DOM element
+      const noteComponent = this.noteComponents.get(noteId);
+      const element = noteComponent?.getElement();
+      const currentPosition = element ? {
+        x: parseInt(element.style.left) || 0,
+        y: parseInt(element.style.top) || 0
+      } : { x: 0, y: 0 };
+
       const savedNote: StickyNote = {
         id: noteId,
         text,
         createdAt: Date.now(),
-        position: { x: 0, y: 0 }, // Position will be preserved by DOM
+        position: currentPosition,
         isEditing: false,
       };
 
-      const component = this.noteComponents.get(noteId);
-      if (component) {
-        component.updateNote(savedNote);
+      if (noteComponent) {
+        noteComponent.updateNote(savedNote);
       }
 
       this.isCreatingNote = false;
       this.newNoteButton.setEnabled(true);
-      this.showMessage('Note saved successfully!', 'success');
+      this.showMessage('付箋が正常に保存されました！', 'success');
     } catch (error) {
       console.error('Failed to save note:', error);
-      this.showMessage(`Failed to save note: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+      this.showMessage(`付箋の保存に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`, 'error');
     }
   }
 
@@ -165,9 +137,12 @@ export class Whiteboard {
       this.noteComponents.delete(noteId);
     }
 
+    // WhiteboardServiceからもインメモリノートを削除
+    this.whiteboardService.cancelNoteEdit(noteId);
+
     this.isCreatingNote = false;
     this.newNoteButton.setEnabled(true);
-    this.showMessage('Note creation cancelled', 'info');
+    this.showMessage('付箋の作成がキャンセルされました', 'info');
   }
 
   private showMessage(message: string, type: 'info' | 'success' | 'warning' | 'error'): void {
@@ -179,8 +154,14 @@ export class Whiteboard {
     messageElement.className = `message message-${type}`;
     messageElement.textContent = message;
 
-    const header = this.element.querySelector('.whiteboard-header') as HTMLDivElement;
-    header.appendChild(messageElement);
+    // ホワイトボードの最上部に表示
+    const whiteboard = this.element.querySelector('#whiteboard') as HTMLDivElement;
+    if (whiteboard) {
+      whiteboard.insertBefore(messageElement, whiteboard.firstChild);
+    } else {
+      // フォールバック: コンテナの最上部に追加
+      this.element.insertBefore(messageElement, this.element.firstChild);
+    }
 
     // Auto-remove message after 5 seconds
     setTimeout(() => {
@@ -200,11 +181,11 @@ export class Whiteboard {
       });
 
       if (notes.length > 0) {
-        this.showMessage(`Loaded ${notes.length} note(s) from cache`, 'success');
+        this.showMessage(`キャッシュから${notes.length}個の付箋を読み込みました`, 'success');
       }
     } catch (error) {
       console.error('Failed to load existing notes:', error);
-      this.showMessage('Failed to load existing notes', 'error');
+      this.showMessage('既存の付箋の読み込みに失敗しました', 'error');
     }
   }
 
@@ -213,6 +194,76 @@ export class Whiteboard {
   }
 
   async initialize(): Promise<void> {
+    await this.createInstructionNotes();
     await this.loadExistingNotes();
+  }
+
+  private async createInstructionNotes(): Promise<void> {
+    try {
+      // 使い方の3つの項目をふせんとして作成
+      const instructionTexts = [
+        '「＋新しいふせん」でふせんを追加',
+        'メッセージを入力（最大200文字）',
+        'ブラウザキャッシュを削除（開発者ツール → Application → Storage）すると、ふせんが消えます'
+      ];
+
+      for (let i = 0; i < instructionTexts.length; i++) {
+        const instructionNote: StickyNote = {
+          id: `instruction-${i + 1}`,
+          text: instructionTexts[i],
+          createdAt: Date.now(),
+          position: { x: 20 + (i * 220), y: 20 }, // 最初の行に配置
+          isEditing: false,
+        };
+
+        this.addInstructionNoteToDOM(instructionNote);
+      }
+
+      // 新しいふせんボタンを次の行に配置
+      this.createNewNoteButton();
+    } catch (error) {
+      console.error('Failed to create instruction notes:', error);
+    }
+  }
+
+  private addInstructionNoteToDOM(note: StickyNote): void {
+    const noteElement = document.createElement('div');
+    noteElement.className = 'sticky-note instruction-note';
+    noteElement.id = `note-${note.id}`;
+    noteElement.style.left = `${note.position.x}px`;
+    noteElement.style.top = `${note.position.y}px`;
+
+    const textElement = document.createElement('div');
+    textElement.className = 'note-text';
+    textElement.textContent = note.text;
+
+    noteElement.appendChild(textElement);
+
+    const whiteboard = this.element.querySelector('#whiteboard') as HTMLDivElement;
+    whiteboard.appendChild(noteElement);
+  }
+
+  private createNewNoteButton(): void {
+    const buttonElement = document.createElement('div');
+    buttonElement.className = 'sticky-note new-note-sticky';
+    buttonElement.style.left = '20px';
+    buttonElement.style.top = '190px'; // 次の行
+    buttonElement.style.cursor = 'pointer';
+
+    const plusElement = document.createElement('div');
+    plusElement.className = 'plus-icon';
+    plusElement.textContent = '+';
+
+    const labelElement = document.createElement('div');
+    labelElement.className = 'new-note-label';
+    labelElement.textContent = '新しいふせん';
+
+    buttonElement.appendChild(plusElement);
+    buttonElement.appendChild(labelElement);
+
+    buttonElement.addEventListener('click', () => this.handleNewNoteClick());
+
+    const whiteboard = this.element.querySelector('#whiteboard') as HTMLDivElement;
+    whiteboard.appendChild(buttonElement);
   }
 }

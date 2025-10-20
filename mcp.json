@@ -13,6 +13,10 @@
         "/home/riku-miura/project/cache_sticky"
       ],
       "env": {}
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["chrome-devtools-mcp@latest"]
     }
   }
 }

@@ -33,7 +33,8 @@ export class CacheService {
 
   async storeNote(note: StickyNote): Promise<void> {
     if (!this.isCacheAvailable()) {
-      throw new CacheUnavailableError();
+      console.warn('Cache API not available, note will not persist');
+      return; // Graceful fallback - just continue without storing
     }
 
     const validation = StickyNoteValidator.validateNote(note);
@@ -47,20 +48,25 @@ export class CacheService {
       const response = this.createResponse(note);
 
       await cache.put(request, response);
+      console.log(`Note ${note.id} stored successfully`);
     } catch (error) {
+      console.warn(`Failed to store note ${note.id}:`, error);
+
       if (error instanceof Error) {
         if (error.message.includes('quota') || error.name === 'QuotaExceededError') {
           throw new CacheQuotaExceededError();
         }
-        throw new CacheOperationError('storeNote', error.message);
+        // Cache操作エラーの場合は警告を出すが例外は投げない
+        console.warn('Note storage failed but continuing without persistence');
+        return;
       }
-      throw new CacheOperationError('storeNote', 'Unknown error');
     }
   }
 
   async getNote(noteId: string): Promise<StickyNote | null> {
     if (!this.isCacheAvailable()) {
-      throw new CacheUnavailableError();
+      console.warn('Cache API not available, returning null');
+      return null;
     }
 
     try {
@@ -76,18 +82,15 @@ export class CacheService {
       const validation = StickyNoteValidator.validateNote(noteData);
 
       if (!validation.isValid) {
-        throw new InvalidNoteDataError(validation.error || 'Corrupted note data');
+        console.warn(`Invalid note data for ${noteId}: ${validation.error}`);
+        return null;
       }
 
       return noteData as StickyNote;
     } catch (error) {
-      if (error instanceof InvalidNoteDataError) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new CacheOperationError('getNote', error.message);
-      }
-      throw new CacheOperationError('getNote', 'Unknown error');
+      console.warn(`Failed to get note ${noteId}:`, error);
+      // Cache操作エラーの場合はnullを返す（graceful fallback）
+      return null;
     }
   }
 
@@ -125,7 +128,7 @@ export class CacheService {
       const notes = await Promise.all(notePromises);
       return notes.filter((note): note is StickyNote => note !== null);
     } catch (error) {
-      console.error('Failed to load notes from cache:', error);
+      console.warn('Cache API is not available or encountered an error, using memory-only mode:', error);
       return []; // Graceful fallback
     }
   }

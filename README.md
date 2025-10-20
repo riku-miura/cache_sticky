@@ -1,273 +1,283 @@
 # Cache Sticky 📝
 
-A minimal, frontend-only web application to visualize browser Cache API behavior through interactive sticky notes ("fusen") on a digital whiteboard.
+ブラウザのCache API動作を可視化するための、インタラクティブな付箋（ふせん）機能を持つミニマルなWebアプリケーションです。
 
-## 🎯 Purpose
+## 🎯 目的
 
-Cache Sticky is an educational tool that demonstrates how the browser Cache API works by creating persistent sticky notes. Users can:
+Cache Stickyは、ブラウザのCache APIの動作を学習するための教育ツールです。持続的な付箋を作成することで、以下のことが体験できます：
 
-- Create unlimited sticky notes (200 characters max each)
-- See notes persist across page refreshes via Cache API
-- Observe notes disappear when browser cache is cleared
-- Learn about browser storage limitations and behavior
+- 無制限の付箋作成（各付箋最大200文字）
+- ページ更新後もCache APIによる付箋の永続化を確認
+- ブラウザキャッシュクリア時の付箋消失の観察
+- ブラウザストレージの制限と動作の学習
 
-## ✨ Features
+## ✨ 機能
 
-- **📝 Interactive Sticky Notes**: Create, edit, and save text notes
-- **🔄 Cache Persistence**: Notes persist using browser Cache API
-- **🎨 Minimal UI**: Clean, distraction-free interface
-- **📱 Responsive Design**: Works on desktop and mobile devices
-- **🔒 Client-Side Only**: No backend required, pure frontend application
-- **⚡ Fast Performance**: Optimized for smooth interactions even with many notes
-- **🧪 Educational Value**: Perfect for learning Cache API concepts
+- **📝 インタラクティブな付箋**: テキスト付箋の作成、編集、保存
+- **🔄 キャッシュ永続化**: ブラウザCache APIによる付箋の永続化
+- **🎨 統一されたふせんUI**: 説明、ボタン、ユーザー付箋すべてがふせん形式
+- **📐 グリッド配置システム**: 重複しない整然とした配置
+- **📱 レスポンシブデザイン**: デスクトップとモバイルデバイス対応
+- **🔒 クライアントサイドのみ**: バックエンド不要、純粋なフロントエンドアプリケーション
+- **⚡ 高速パフォーマンス**: 多数の付箋でもスムーズな操作
+- **🧪 教育的価値**: Cache API概念の学習に最適
 
-## 🚀 Quick Start
+## 🚀 クイックスタート
 
-### Prerequisites
+### 前提条件
 
-- Node.js 18+ and npm
-- Modern web browser with Cache API support:
+- Node.js 18+ および npm
+- Cache API対応のモダンブラウザ：
   - Chrome 40+
   - Firefox 41+
   - Safari 11.1+
   - Edge 79+
 
-### Installation & Setup
+### インストール・セットアップ
 
 ```bash
-# Clone the repository
+# リポジトリをクローン
 git clone https://github.com/your-username/cache_sticky.git
 cd cache_sticky
 
-# Install dependencies
+# 依存関係をインストール
 npm install
 
-# Start development server
+# 開発サーバーを起動
 npm run dev
 
-# Open http://localhost:5173 in your browser
+# ブラウザで http://localhost:5173 を開く
 ```
 
-### Production Build
+### プロダクションビルド
 
 ```bash
-# Build for production
+# プロダクション用にビルド
 npm run build
 
-# Preview production build
+# プロダクションビルドをプレビュー
 npm run preview
 ```
 
-## 📚 How to Use
+## 📚 使い方
 
-### Basic Usage
+### 基本的な使用方法
 
-1. **Create a Note**: Click the "New Note" button
-2. **Write Content**: Type your message (max 200 characters)
-3. **Save**: Press Enter or click outside the note
-4. **Test Persistence**: Refresh the page - notes should reappear
-5. **Clear Cache**: Use browser dev tools to clear cache and see notes disappear
+1. **付箋を作成**: 「＋新しいふせん」のふせん型ボタンをクリック
+2. **内容を記入**: メッセージを入力（最大200文字）
+3. **保存**: Enterキーを押すか、外側をクリック
+4. **永続化をテスト**: ページを更新しても付箋が再表示されることを確認
+5. **キャッシュクリア**: ブラウザ開発者ツールでキャッシュをクリアして付箋が消えることを確認
 
-### Keyboard Shortcuts
+### UI設計
 
-- **Enter**: Save the current note
-- **Escape**: Cancel note creation/editing
-- **Tab**: Navigate between UI elements
+- **統一されたふせんUI**: 使い方説明、新しいふせんボタン、ユーザー作成ふせんすべてが同じふせん形式
+- **グリッド配置**: 200px×150pxのグリッドで整然と配置
+- **固定エリア**:
+  - 第1行: 使い方説明ふせん（3個）
+  - 第2行: 新しいふせんボタン（左端）
+  - 第3行以降: ユーザー作成ふせん
 
-### Cache Clearing Demo
+### キーボードショートカット
 
-To demonstrate the Cache API behavior:
+- **Enter**: 現在の付箋を保存
+- **Escape**: 付箋の作成・編集をキャンセル
+- **Tab**: UI要素間の移動
 
-1. Create several notes with different content
-2. Refresh the page to confirm notes persist
-3. Open Developer Tools (F12)
-4. Go to Application/Storage → Cache Storage
-5. Delete the cache entries or clear all browsing data
-6. Refresh the page - all notes will disappear
+### Cache APIデモンストレーション
 
-## 🛠️ Development
+Cache APIの動作を確認するには：
 
-### Project Structure
+1. 異なる内容で複数の付箋を作成
+2. ページを更新して付箋が維持されることを確認
+3. 開発者ツール（F12）を開く
+4. Application/Storage → Cache Storage に移動
+5. キャッシュエントリを削除するか、全ての閲覧データをクリア
+6. ページを更新 - すべての付箋が消失
+
+## 🛠️ 開発
+
+### プロジェクト構造
 
 ```
 cache_sticky/
 ├── src/
-│   ├── components/     # UI components (StickyNote, Whiteboard, etc.)
-│   ├── models/         # Data models and validation
-│   ├── services/       # Business logic (CacheService, WhiteboardService)
-│   ├── styles/         # CSS styles
-│   ├── types/          # TypeScript type definitions
-│   └── main.ts         # Application entry point
+│   ├── components/     # UIコンポーネント（StickyNote、Whiteboardなど）
+│   ├── models/         # データモデルとバリデーション
+│   ├── services/       # ビジネスロジック（CacheService、WhiteboardService）
+│   ├── styles/         # CSSスタイル
+│   ├── types/          # TypeScript型定義
+│   └── main.ts         # アプリケーションエントリーポイント
 ├── tests/
-│   ├── contract/       # Contract/interface tests
-│   ├── integration/    # Integration tests
-│   ├── unit/           # Unit tests
-│   └── e2e/            # End-to-end tests (Playwright)
-├── public/             # Static assets
-└── specs/              # Feature specifications and documentation
+│   ├── contract/       # コントラクト・インターフェーステスト
+│   ├── integration/    # 統合テスト
+│   ├── unit/           # ユニットテスト
+│   └── e2e/            # エンドツーエンドテスト（Playwright）
+├── public/             # 静的アセット
+└── specs/              # 機能仕様書とドキュメント
 ```
 
-### Available Scripts
+### 利用可能なスクリプト
 
 ```bash
-# Development
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run preview      # Preview production build
+# 開発
+npm run dev          # 開発サーバーを起動
+npm run build        # プロダクション用ビルド
+npm run preview      # プロダクションビルドのプレビュー
 
-# Testing
-npm run test         # Run unit tests (Jest)
-npm run test:e2e     # Run end-to-end tests (Playwright)
-npm run test:coverage # Generate test coverage report
+# テスト
+npm run test         # ユニットテスト（Jest）
+npm run test:e2e     # エンドツーエンドテスト（Playwright）
+npm run test:coverage # テストカバレッジレポート生成
 
-# Code Quality
-npm run lint         # Check code quality (ESLint)
-npm run format       # Format code (Prettier)
-npm run type-check   # TypeScript validation
+# コード品質
+npm run lint         # コード品質チェック（ESLint）
+npm run format       # コードフォーマット（Prettier）
+npm run type-check   # TypeScriptバリデーション
 ```
 
-### Technical Stack
+### 技術スタック
 
-- **Framework**: Vanilla TypeScript + Vite
-- **Storage**: Browser Cache API
-- **Testing**: Jest (unit) + Playwright (e2e)
-- **Code Quality**: ESLint + Prettier
-- **Build Tool**: Vite
-- **Styling**: CSS3 with responsive design
+- **フレームワーク**: Vanilla TypeScript + Vite
+- **ストレージ**: Browser Cache API
+- **テスト**: Jest（ユニット） + Playwright（e2e）
+- **コード品質**: ESLint + Prettier
+- **ビルドツール**: Vite
+- **スタイリング**: レスポンシブデザイン対応CSS3
 
-## 🧪 Testing
+## 🧪 テスト
 
-The project follows Test-Driven Development (TDD) with 90%+ test coverage:
+プロジェクトはTest-Driven Development（TDD）に従い、90%以上のテストカバレッジを維持しています：
 
-### Running Tests
+### テスト実行
 
 ```bash
-# Run all unit tests
+# 全ユニットテストを実行
 npm run test
 
-# Run tests with coverage
+# カバレッジ付きでテスト実行
 npm run test:coverage
 
-# Run end-to-end tests
+# エンドツーエンドテストを実行
 npm run test:e2e
 
-# Run specific test file
+# 特定のテストファイルを実行
 npm run test tests/contract/test_cache_service.test.ts
 ```
 
-### Test Categories
+### テストカテゴリ
 
-- **Contract Tests**: Verify service interfaces work as expected
-- **Integration Tests**: Test component interactions and user flows
-- **End-to-End Tests**: Full browser automation testing
-- **Unit Tests**: Individual function and class testing
+- **コントラクトテスト**: サービスインターフェースの期待動作を検証
+- **統合テスト**: コンポーネント間の相互作用とユーザーフローをテスト
+- **エンドツーエンドテスト**: 完全なブラウザ自動化テスト
+- **ユニットテスト**: 個別の関数やクラスのテスト
 
-## 🎓 Learning Objectives
+## 🎓 学習目標
 
-After using Cache Sticky, you'll understand:
+Cache Stickyを使用することで、以下の理解が深まります：
 
-### Cache API Fundamentals
-- How Cache API differs from localStorage/sessionStorage
-- Request/Response pattern for storing data
-- Cache key management and retrieval
-- Browser-controlled cache clearing behavior
+### Cache API基礎
+- Cache APIとlocalStorage/sessionStorageの違い
+- データ保存におけるRequest/Responseパターン
+- キャッシュキーの管理と取得
+- ブラウザ制御によるキャッシュクリア動作
 
-### Frontend Architecture
-- TypeScript interface design and implementation
-- Service layer pattern for business logic
-- Component-based UI architecture
-- Error handling and user feedback
+### フロントエンドアーキテクチャ
+- TypeScriptインターフェース設計と実装
+- ビジネスロジックのサービス層パターン
+- コンポーネントベースUIアーキテクチャ
+- エラーハンドリングとユーザーフィードバック
 
-### Performance Considerations
-- Memory management with unlimited data
-- Efficient DOM manipulation
-- Browser compatibility strategies
-- Progressive enhancement
+### パフォーマンス考慮事項
+- 無制限データでのメモリ管理
+- 効率的なDOM操作
+- ブラウザ互換性戦略
+- プログレッシブエンハンスメント
 
-## 📖 Architecture & Design
+## 📖 アーキテクチャと設計
 
-### Core Services
+### コアサービス
 
-- **CacheService**: Handles all Cache API operations
-- **WhiteboardService**: Manages note creation and validation
-- **StickyNoteComponent**: Individual note UI management
-- **Whiteboard**: Main application orchestration
+- **CacheService**: すべてのCache API操作を処理
+- **WhiteboardService**: 付箋の作成、バリデーション、グリッド配置ロジックを管理
+- **StickyNoteComponent**: 個別付箋のUI管理
+- **Whiteboard**: メインアプリケーションの統制、固定ふせん（説明・ボタン）の管理
 
-### Design Patterns
+### 設計パターン
 
-- **Service Layer**: Separation of business logic from UI
-- **Component Pattern**: Reusable UI components
-- **Observer Pattern**: Event-driven interactions
-- **Error Boundary**: Graceful error handling
+- **サービス層**: UIからビジネスロジックの分離
+- **コンポーネントパターン**: 再利用可能なUIコンポーネント
+- **オブザーバーパターン**: イベント駆動型相互作用
+- **エラーバウンダリ**: 優雅なエラーハンドリング
 
-### Security Features
+### セキュリティ機能
 
-- **Input Sanitization**: XSS prevention for note content
-- **Content Security Policy**: Restricted script execution
-- **Type Safety**: TypeScript for runtime safety
-- **Validation**: Client-side input validation
+- **入力サニタイゼーション**: 付箋内容のXSS防止
+- **コンテンツセキュリティポリシー**: スクリプト実行の制限
+- **型安全性**: 実行時安全性のためのTypeScript
+- **バリデーション**: クライアントサイド入力検証
 
-## 🔧 Configuration
+## 🔧 設定
 
-### Browser Compatibility
+### ブラウザ互換性
 
-The application automatically detects Cache API availability and provides fallback behavior:
+アプリケーションは自動的にCache APIの利用可能性を検出し、フォールバック動作を提供します：
 
-- **Cache Available**: Full functionality with persistence
-- **Cache Unavailable**: Memory-only mode with warnings
+- **Cache利用可能**: 永続化機能付きの完全な機能
+- **Cache利用不可**: 警告付きのメモリのみモード
 
-### Performance Settings
+### パフォーマンス設定
 
-- **Character Limit**: 200 characters per note (configurable)
-- **Position Management**: Automatic note positioning to prevent overlap
-- **Memory Cleanup**: Proper event listener cleanup
+- **文字制限**: 付箋あたり200文字（設定可能）
+- **配置管理**: 重複を防ぐ自動付箋配置
+- **メモリクリーンアップ**: 適切なイベントリスナークリーンアップ
 
-## 🤝 Contributing
+## 🤝 貢献
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes following the existing code style
-4. Add tests for new functionality
-5. Ensure all tests pass (`npm run test`)
-6. Run linting (`npm run lint`)
-7. Commit your changes (`git commit -m 'Add amazing feature'`)
-8. Push to the branch (`git push origin feature/amazing-feature`)
-9. Open a Pull Request
+1. リポジトリをフォーク
+2. 機能ブランチを作成（`git checkout -b feature/amazing-feature`）
+3. 既存のコードスタイルに従って変更を実行
+4. 新機能にテストを追加
+5. すべてのテストが通ることを確認（`npm run test`）
+6. リンティングを実行（`npm run lint`）
+7. 変更をコミット（`git commit -m 'Add amazing feature'`）
+8. ブランチにプッシュ（`git push origin feature/amazing-feature`）
+9. プルリクエストを開く
 
-### Development Guidelines
+### 開発ガイドライン
 
-- Follow TypeScript strict mode
-- Maintain 90%+ test coverage
-- Use TDD approach for new features
-- Follow existing naming conventions
-- Add JSDoc comments for public APIs
+- TypeScript strict modeに従う
+- 90%以上のテストカバレッジを維持
+- 新機能にTDDアプローチを使用
+- 既存の命名規則に従う
+- パブリックAPIにJSDocコメントを追加
 
-## 📝 License
+## 📝 ライセンス
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+このプロジェクトはMITライセンスの下でライセンスされています - 詳細は[LICENSE](LICENSE)ファイルを参照してください。
 
-## 🙏 Acknowledgments
+## 🙏 謝辞
 
-- Built with ❤️ for educational purposes
-- Inspired by the need to understand browser storage APIs
-- Thanks to the web development community for Cache API documentation
+- 教育目的のために❤️で構築
+- ブラウザストレージAPIを理解する必要性にインスパイア
+- Cache APIドキュメントのためのWeb開発コミュニティに感謝
 
-## 🐛 Known Issues & Limitations
+## 🐛 既知の問題と制限
 
-- Cache API not supported in all browsers (graceful fallback provided)
-- Cache quota limits vary by browser and available storage
-- Notes are stored per origin (domain + protocol + port)
-- Cache clearing is controlled by browser, not the application
+- すべてのブラウザでCache APIがサポートされているわけではない（優雅なフォールバック提供）
+- キャッシュクォータ制限はブラウザと利用可能ストレージによって異なる
+- 付箋はオリジンごと（ドメイン + プロトコル + ポート）に保存
+- キャッシュクリアはブラウザによって制御され、アプリケーションではない
 
-## 📞 Support
+## 📞 サポート
 
-If you encounter issues or have questions:
+問題が発生した場合や質問がある場合：
 
-1. Check the [GitHub Issues](https://github.com/your-username/cache_sticky/issues)
-2. Review the browser console for error messages
-3. Ensure your browser supports Cache API
-4. Try clearing your browser cache and reloading
+1. [GitHub Issues](https://github.com/your-username/cache_sticky/issues)を確認
+2. エラーメッセージについてブラウザコンソールを確認
+3. ブラウザがCache APIをサポートしていることを確認
+4. ブラウザキャッシュをクリアして再読み込みを試行
 
 ---
 
-**Happy Caching!** 🎉
+**楽しいキャッシュライフを！** 🎉

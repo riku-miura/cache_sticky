@@ -20,6 +20,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding: 0;
+  margin: 0;
 }
 
 /* Header */
@@ -67,12 +69,18 @@ body {
 }
 
 .new-note-button:disabled,
-.new-note-button.disabled {
-  background: #ddd;
+.new-note-button.disabled,
+.new-note-sticky.disabled {
+  background: #ddd !important;
   color: #999;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.new-note-sticky.disabled .plus-icon,
+.new-note-sticky.disabled .new-note-label {
+  color: #999;
 }
 
 /* Cache Status */
@@ -96,40 +104,69 @@ body {
   border: 1px solid #f5c6cb;
 }
 
-/* Instructions */
-.instructions {
-  background: #e3f2fd;
-  padding: 1rem 2rem;
-  border-left: 4px solid #2196f3;
-  margin: 1rem 2rem 0;
-  border-radius: 0 4px 4px 0;
+/* 説明用ふせんのスタイル */
+.instruction-note {
+  background: #e3f2fd !important;
+  border: 2px solid #2196f3 !important;
+  cursor: default !important;
 }
 
-.instructions p {
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: #1565c0;
+.instruction-note:hover {
+  transform: none !important;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15) !important;
 }
 
-.instructions ol {
-  margin: 0.5rem 0 0 1.5rem;
+.instruction-note .note-text {
   color: #1976d2;
-}
-
-.instructions li {
-  margin-bottom: 0.25rem;
+  font-weight: 500;
+  font-size: 0.9rem;
 }
 
 /* Whiteboard */
 .whiteboard {
   flex: 1;
   position: relative;
-  margin: 2rem;
+  margin: 1rem;
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  min-height: 500px;
-  overflow: hidden;
+  min-height: calc(100vh - 120px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+  width: calc(100% - 2rem);
+}
+
+/* 新しいふせんボタン（ふせん形式） */
+.new-note-sticky {
+  background: #FFD700 !important;
+  border: 2px dashed #FFC107 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.new-note-sticky:hover {
+  background: #FFC107 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.new-note-sticky .plus-icon {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.new-note-sticky .new-note-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
 }
 
 /* Sticky Notes */
@@ -348,6 +385,50 @@ body {
 
 .fallback-message button:hover {
   background: #0056b3;
+}
+
+/* Message Display */
+.message {
+  padding: 0.75rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  font-weight: 500;
+  animation: slideIn 0.3s ease-out;
+}
+
+.message-info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.message-success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message-warning {
+  background: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.message-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive Design */
