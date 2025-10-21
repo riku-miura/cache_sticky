@@ -3,6 +3,7 @@ import { resolve } from 'path';
 
 export default defineConfig({
   root: '.',
+  base: './',  // 相対パスでアセットを参照
   build: {
     outDir: 'dist'
   },
